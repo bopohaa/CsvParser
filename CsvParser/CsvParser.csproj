@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Company>Nikolay Vorobev</Company>
+    <Authors>Nikolay Vorobev</Authors>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Description>A library for reading data in CSV format. Extremely fast and easy to use.</Description>
+    <PackageLicenseUrl>https://github.com/bopohaa/CsvParser/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/bopohaa/CsvParser</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/bopohaa/CsvParser.git</RepositoryUrl>
+    <RepositoryType>GIT</RepositoryType>
+    <PackageTags>CSV, parser, fast</PackageTags>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile>CsvParser.pfx</AssemblyOriginatorKeyFile>
+    <Copyright>Copyright © 2018 Nikolay Vorobev</Copyright>
+  </PropertyGroup>
+
+</Project>
