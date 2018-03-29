@@ -19,7 +19,7 @@ namespace CsvTest
             var input = args[0];
 
             using (var stream = File.OpenRead(input))
-            using (var parser = new CsvParser.CsvReader(stream, Encoding.UTF8, new CsvReader.Config() { WithQuotes = true }))
+            using (var parser = new CsvParser.CsvReader(stream, Encoding.UTF8, new CsvParser.CsvReader.Config() { WithQuotes = true }))
             {
 // Read CSV header
                 if (!parser.MoveNext())
