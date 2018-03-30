@@ -4,16 +4,28 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CsvParser
 {
     public class CsvReader : IEnumerator<ICsvReaderRow>
     {
+        private const int DEFAULT_BUFFER_SIZE = 64 * 1024;
+
         public struct Config
         {
+#pragma warning disable 0649
             public bool WithQuotes;
             public char ColumnSeparator;
             public char Quotes;
+            public int ReadinBufferSize;
+#pragma warning restore 0649
+
+            internal int GetReadingBufferSize()
+            {
+                return ReadinBufferSize == default(int) ? DEFAULT_BUFFER_SIZE : ReadinBufferSize;
+            }
         }
 
         private enum State
@@ -25,30 +37,29 @@ namespace CsvParser
             end2
         }
 
-        private const int BUFFER_SIZE = 1024 * 64;
         private readonly ChunkReader _reader;
         private readonly Config _config;
-        private Row _current;
-        private IEnumerator<Chunk> _data;
         private Chunk _currentChunk;
         private int _currentChunkStart;
         private int _rowCnt;
         private readonly ObjectPool<Row> _rowPool;
+        private ICsvReaderRow _currentRow;
+
+        public ICsvReaderRow Current => _currentRow;
+
+        object IEnumerator.Current => _currentRow;
 
         public CsvReader(Stream source, Encoding encoding, Config config = default(Config))
         {
-            _current = null;
-            _data = null;
             _currentChunk = null;
-            _reader = new ChunkReader(source, encoding, BUFFER_SIZE, config);
+            _currentRow = null;
+            _currentChunkStart = 0;
+            _reader = new ChunkReader(source, encoding, config);
             _config = config;
             _rowCnt = 0;
             _rowPool = Row.CreatePool();
         }
 
-        public ICsvReaderRow Current => _current;
-
-        object IEnumerator.Current => Current;
 
         public void Dispose()
         {
@@ -57,27 +68,11 @@ namespace CsvParser
                 _currentChunk.Dispose();
                 _currentChunk = null;
             }
-            if (_data != null)
+            if (_currentRow != null)
             {
-                _data.Dispose();
-                _data = null;
+                _currentRow.Dispose();
+                _currentRow = null;
             }
-
-            if (_current != null)
-            {
-                _current.Dispose();
-                _current = null;
-            }
-        }
-
-        public bool MoveNext()
-        {
-            if (_current != null)
-                _current.Dispose();
-
-            _current = GetNextRow();
-
-            return _current != null;
         }
 
         public void Reset()
@@ -85,27 +80,76 @@ namespace CsvParser
             throw new NotImplementedException();
         }
 
-        private Row GetNextRow()
+        public bool MoveNext()
         {
             var row = _rowPool.Allocate();
 
-            if (_data == null)
-                _data = _reader.Read().GetEnumerator();
-
-
-            var withQuotesNone = _config.WithQuotes ? 0 : 1;
-            var withQuotesInc = _config.WithQuotes ? 1 : 0;
             var state = State.start;
             while (state != State.end2)
             {
                 if (_currentChunk == null)
                 {
-                    if (!_data.MoveNext())
+                    _currentChunk = _reader.Read();
+                    if (_currentChunk == null)
                         break;
-
-                    _currentChunk = _data.Current.Clone();
-                    _currentChunkStart = 0;
                 }
+
+                state = Parse(state, row);
+            }
+
+            return CompleteRead(row);
+        }
+
+        public Task<bool> MoveNextAsync()
+        {
+            return MoveNextAsync(CancellationToken.None);
+        }
+
+        public async Task<bool> MoveNextAsync(CancellationToken cancellation)
+        {
+            var row = _rowPool.Allocate();
+
+            var state = State.start;
+            while (state != State.end2)
+            {
+                if (_currentChunk == null)
+                {
+                    _currentChunk = await _reader.ReadAsync(cancellation);
+                    if (_currentChunk == null)
+                        break;
+                }
+
+                state = Parse(state, row);
+            }
+
+            return CompleteRead(row);
+        }
+
+        private bool CompleteRead(ICsvReaderRow row)
+        {
+            if (row.Count == 0)
+            {
+                row.Dispose();
+                row = null;
+            }
+            else
+                _rowCnt++;
+
+            var prev = _currentRow;
+            _currentRow = row;
+            if (prev != null)
+                prev.Dispose();
+
+            return row != null;
+        }
+
+        private State Parse(State state, Row row)
+        {
+            var withQuotesNone = _config.WithQuotes ? 0 : 1;
+            var withQuotesInc = _config.WithQuotes ? 1 : 0;
+
+            while (state != State.end2)
+            {
                 if (!_currentChunk.MoveNext())
                 {
                     var remain = _currentChunk.Count - _currentChunkStart;
@@ -114,7 +158,8 @@ namespace CsvParser
 
                     _currentChunk.Dispose();
                     _currentChunk = null;
-                    continue;
+                    _currentChunkStart = 0;
+                    return state;
                 }
                 var part = _currentChunk.Current;
 
@@ -194,15 +239,7 @@ namespace CsvParser
                 }
             }
 
-            if (row.Count == 0)
-            {
-                row.Dispose();
-                return null;
-            }
-
-            _rowCnt++;
-
-            return row;
+            return state;
         }
     }
 }

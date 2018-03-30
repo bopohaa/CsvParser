@@ -7,8 +7,6 @@ namespace CsvParser.Common
 {
     internal class Chunk : IDisposable, IEnumerator<KeyValuePair<Chunk.TypeEnum, int>>
     {
-        private const int INITIAL_BUFFER_SIZE = 64 * 1024;
-
         public enum TypeEnum : byte
         {
             data = 0,
@@ -36,10 +34,10 @@ namespace CsvParser.Common
 
         object IEnumerator.Current => Current;
 
-        private Chunk(char column_separator, char quotes, ObjectPool<Chunk> pool)
+        private Chunk(char column_separator, char quotes, int buffer_size, ObjectPool<Chunk> pool)
         {
             _pool = pool;
-            _buffer = new char[INITIAL_BUFFER_SIZE];
+            _buffer = new char[buffer_size];
             _retainCnt = 0;
 
             Clean();
@@ -59,7 +57,6 @@ namespace CsvParser.Common
                 Array.Resize(ref _buffer, size);
 
             _counts = _encoding.GetChars(data, offset, size, _buffer, 0);
-
             return ((CustomDecoderFallback)_encoding.DecoderFallback).ResetBytesUnknown();
         }
         public void Dispose()
@@ -133,9 +130,9 @@ namespace CsvParser.Common
             }
         }
 
-        public static ObjectPool<Chunk> CreatePool(char column_separator, char quotes)
+        public static ObjectPool<Chunk> CreatePool(char column_separator, char quotes, int buffer_size)
         {
-            return new ObjectPool<Chunk>(pool => new Chunk(column_separator, quotes, pool));
+            return new ObjectPool<Chunk>(pool => new Chunk(column_separator, quotes, buffer_size, pool));
         }
     }
 }

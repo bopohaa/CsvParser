@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CsvParser.Common
 {
@@ -13,36 +15,68 @@ namespace CsvParser.Common
         private readonly byte[] _buffer;
         private readonly ObjectPool<Chunk> _chunkPool;
 
-        public ChunkReader(Stream source, Encoding encoding, int buffer_size, CsvReader.Config config)
+        private byte[] _prevByteUnk;
+        private bool _eof;
+
+        public ChunkReader(Stream source, Encoding encoding, CsvReader.Config config)
         {
+            var bufferSize = config.GetReadingBufferSize();
             _source = source;
-            _encoder = Encoding.GetEncoding(encoding.CodePage, encoding.EncoderFallback, new CustomDecoderFallback(buffer_size, encoding.DecoderFallback));
-            _buffer = new byte[buffer_size];
-            _chunkPool = Chunk.CreatePool(config.ColumnSeparator, config.Quotes);
+            _encoder = Encoding.GetEncoding(encoding.CodePage, encoding.EncoderFallback, new CustomDecoderFallback(bufferSize, encoding.DecoderFallback));
+            _buffer = new byte[bufferSize];
+            _chunkPool = Chunk.CreatePool(config.ColumnSeparator, config.Quotes, bufferSize);
+            _prevByteUnk = null;
+            _eof = false;
         }
 
-        public IEnumerable<Chunk> Read()
+        public Chunk Read()
         {
-            byte[] prevByteUnk = null;
-            int len;
-            do
+            if (_eof)
+                return null;
+
+            int offset;
+
+            if (_prevByteUnk != null)
             {
-                if (prevByteUnk != null)
-                {
-                    Array.Copy(prevByteUnk, _buffer, prevByteUnk.Length);
-                    len = ReadDataIntoBuffer(prevByteUnk.Length);
-                }
-                else
-                    len = ReadDataIntoBuffer(0);
-
-                var chunk = _chunkPool.Allocate();
-                prevByteUnk = chunk.Init(_encoder, _buffer, 0, len);
-
-                yield return chunk;
-
-                chunk.Dispose();
+                offset = _prevByteUnk.Length;
+                Array.Copy(_prevByteUnk, _buffer, offset);
             }
-            while (len == _buffer.Length);
+            else
+                offset = 0;
+
+            var len = ReadDataIntoBuffer(offset);
+
+            return GetChunk(len);
+        }
+
+
+        public Task<Chunk> ReadAsync(CancellationToken cancellation)
+        {
+            if (_eof)
+                return Task.FromResult<Chunk>(null);
+
+            int offset;
+
+            if (_prevByteUnk != null)
+            {
+                offset = _prevByteUnk.Length;
+                Array.Copy(_prevByteUnk, _buffer, offset);
+            }
+            else
+                offset = 0;
+
+            return _source.ReadAsync(_buffer, offset, _buffer.Length - offset)
+                .ContinueWith(t => GetChunk(t.Result + offset), cancellation, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Current);
+        }
+
+        private Chunk GetChunk(int len)
+        {
+            var chunk = _chunkPool.Allocate();
+            _prevByteUnk = chunk.Init(_encoder, _buffer, 0, len);
+            if (len != _buffer.Length)
+                _eof = true;
+
+            return chunk;
         }
 
         private int ReadDataIntoBuffer(int offset)

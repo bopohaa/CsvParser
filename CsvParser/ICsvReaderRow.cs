@@ -9,5 +9,7 @@ namespace CsvParser
         string this[int idx] { get; }
 
         ICsvReaderRow Clone();
+
+        int Count { get; }
     }
 }
