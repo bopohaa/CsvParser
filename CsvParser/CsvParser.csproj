@@ -5,7 +5,7 @@
     <Company>Nikolay Vorobev</Company>
     <Authors>Nikolay Vorobev</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Description>A library for reading data in CSV format. Extremely fast and easy to use.</Description>
+    <Description>A library for fast read data with CSV format according to RFC4180 with small extensions. Best solution for parse very large data files</Description>
     <PackageLicenseUrl>https://github.com/bopohaa/CsvParser/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/bopohaa/CsvParser</PackageProjectUrl>
     <RepositoryUrl>https://github.com/bopohaa/CsvParser.git</RepositoryUrl>
@@ -16,6 +16,7 @@
     <Copyright>Copyright © 2018 Nikolay Vorobev</Copyright>
     <PackageId>FastCsvParser</PackageId>
     <Version>1.1.0</Version>
+    <PackageIconUrl>https://raw.githubusercontent.com/bopohaa/CsvParser/master/icon.png</PackageIconUrl>
   </PropertyGroup>
 
 </Project>
