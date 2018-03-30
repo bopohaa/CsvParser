@@ -14,6 +14,8 @@
     <SignAssembly>false</SignAssembly>
     <AssemblyOriginatorKeyFile>CsvParser.pfx</AssemblyOriginatorKeyFile>
     <Copyright>Copyright © 2018 Nikolay Vorobev</Copyright>
+    <PackageId>FastCsvParser</PackageId>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 
 </Project>
