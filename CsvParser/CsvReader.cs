@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
+#if !NETFX_20 && !NETFX_30 && !NETFX_35 && !NETFX_40
 using System.Threading.Tasks;
+#endif
 
 namespace CsvParser
 {
@@ -100,6 +102,7 @@ namespace CsvParser
             return CompleteRead(row);
         }
 
+#if !NETFX_20 && !NETFX_30 && !NETFX_35 && !NETFX_40
         public Task<bool> MoveNextAsync()
         {
             return MoveNextAsync(CancellationToken.None);
@@ -124,6 +127,7 @@ namespace CsvParser
 
             return CompleteRead(row);
         }
+#endif
 
         private bool CompleteRead(ICsvReaderRow row)
         {

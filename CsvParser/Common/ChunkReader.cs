@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
+#if !NETFX_20 && !NETFX_30 && !NETFX_35 && !NETFX_40
 using System.Threading.Tasks;
+#endif
 
 namespace CsvParser.Common
 {
@@ -49,7 +51,7 @@ namespace CsvParser.Common
             return GetChunk(len);
         }
 
-
+#if !NETFX_20 && !NETFX_30 && !NETFX_35 && !NETFX_40
         public Task<Chunk> ReadAsync(CancellationToken cancellation)
         {
             if (_eof)
@@ -68,6 +70,7 @@ namespace CsvParser.Common
             return _source.ReadAsync(_buffer, offset, _buffer.Length - offset)
                 .ContinueWith(t => GetChunk(t.Result + offset), cancellation, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Current);
         }
+#endif
 
         private Chunk GetChunk(int len)
         {
