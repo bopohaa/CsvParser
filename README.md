@@ -1,4 +1,6 @@
 # CsvParser
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fbopohaa%2FCsvParser.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fbopohaa%2FCsvParser?ref=badge_shield)
+
 Fast read data with CSV format according to RFC4180 with small extensions.
 Best solution for parse very large data files
 
@@ -112,3 +114,7 @@ Results of execution in seconds below in table:
 |0.4206415|1.1696580|1.2340430|3.0415450|
 
 Other very popular library execute in 4.5114237 sec on the same data, but not compiled on .net standard < 2.0
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fbopohaa%2FCsvParser.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fbopohaa%2FCsvParser?ref=badge_large)
