@@ -1,5 +1,6 @@
 # CsvParser
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fbopohaa%2FCsvParser.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fbopohaa%2FCsvParser?ref=badge_shield)
+[![Build Status](https://travis-ci.org/bopohaa/CsvParser.svg?branch=master)](https://travis-ci.org/bopohaa/CsvParser)
 
 Fast read data with CSV format according to RFC4180 with small extensions.
 Best solution for parse very large data files
