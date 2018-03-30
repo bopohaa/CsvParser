@@ -9,6 +9,12 @@ Best solution for parse very large data files
 * No dependencies and a simple code base
 * Simple to use
 
+## Install
+To install CsvParser, run the following command in the Package Manager Console
+```
+PM> Install-Package FastCsvParser 
+```
+
 ## Usage example
 
 ```C#
