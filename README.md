@@ -1,5 +1,6 @@
 # CsvParser
-Fast read data with CSV format
+Fast read data with CSV format according to RFC4180 with small extensions.
+Best solution for parse very large data files
 
 # Usage example
 
@@ -19,7 +20,10 @@ namespace CsvTest
             var input = args[0];
 
             using (var stream = File.OpenRead(input))
-            using (var parser = new CsvParser.CsvReader(stream, Encoding.UTF8, new CsvParser.CsvReader.Config() { WithQuotes = true }))
+            using (var parser = new CsvParser.CsvReader(stream, Encoding.UTF8, 
+// Include quotes (if exists) in result
+// default WithQuotes = false, i.e. column value "'test'" translated to 'test'
+                new CsvParser.CsvReader.Config() { WithQuotes = true }))
             {
 // Read CSV header
                 if (!parser.MoveNext())
