@@ -2,6 +2,13 @@
 Fast read data with CSV format according to RFC4180 with small extensions.
 Best solution for parse very large data files
 
+### Key Features
+* Speed
+* Support standart RFC4180
+* Support async read operations for a network or some other slow to read functionality
+* No dependencies and a simple code base
+* Simple to use
+
 ## Usage example
 
 ```C#
