@@ -2,7 +2,7 @@
 Fast read data with CSV format according to RFC4180 with small extensions.
 Best solution for parse very large data files
 
-# Usage example
+## Usage example
 
 ```C#
 using System;
@@ -42,3 +42,60 @@ namespace CsvTest
     }
 }
 ```
+
+## Performance test
+
+### Define data
+File size 199475243 bytes, and 3337349 rows
+```C#
+var buffer = new MemoryStream();
+using (var stream = File.OpenRead(input))
+    stream.CopyTo(buffer);
+```
+
+### Simple read text data in file with encoding
+```C#
+using (var reader = new StreamReader(buffer, Encoding.UTF8))
+{
+    string line;
+    while ((line = reader.ReadLine()) != null) ;
+}
+```
+
+### Read and parse data from CsvReader (without read columns)
+```C#
+using (var parser = new CsvParser.CsvReader(buffer, Encoding.UTF8))
+{
+    while (parser.MoveNext()) ;
+}
+```
+
+### Read and parse data from CsvReader with read first column data
+```C#
+using (var parser = new CsvParser.CsvReader(buffer, Encoding.UTF8))
+{
+    while (parser.MoveNext())
+    {
+        var data = parser.Current[0];
+    }    
+}
+```
+
+### Read and parse data from CsvReader with read all column data (10 columns)
+```C#
+using (var parser = new CsvParser.CsvReader(buffer, Encoding.UTF8))
+{
+    while (parser.MoveNext())
+    {
+        var data = parser.Current.ToArray();
+    }    
+}
+```
+
+Results of execution in seconds below in table:
+
+|simple read|CsvReader parse|CsvReader parse and read one column|CsvReader parse and read 10 columns|
+|-|-|-|-|
+|0.4206415|1.1696580|1.2340430|3.0415450|
+
+Other very popular library execute in 4.5114237 sec on the same data, but not compiled on .net standard < 2.0
