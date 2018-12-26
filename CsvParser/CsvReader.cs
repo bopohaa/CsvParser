@@ -49,6 +49,11 @@ namespace CsvParser
 
         public ICsvReaderRow Current => _currentRow;
 
+        public ICsvReaderRow CurrentByValue
+        {
+            get { return this.Current.Clone(); }
+        }
+
         object IEnumerator.Current => _currentRow;
 
         public CsvReader(Stream source, Encoding encoding, Config config = default(Config))
