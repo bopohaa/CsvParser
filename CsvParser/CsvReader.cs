@@ -180,8 +180,11 @@ namespace CsvParser
                             case Chunk.TypeEnum.quotes:
                                 if (row.LastColumnSize > 0)
                                     throw new InvalidDataException($"Data found before quotation marks, at: {_rowCnt}");
-                                _currentChunkStart = part.Value + withQuotesNone;
-                                state = State.qdata;
+                                if (part.Value - _currentChunkStart == 0)
+                                {
+                                    _currentChunkStart = part.Value + withQuotesNone;
+                                    state = State.qdata;
+                                }
                                 break;
                             case Chunk.TypeEnum.comma:
                                 row.AddColumnData(_currentChunk, _currentChunkStart, part.Value - _currentChunkStart);
